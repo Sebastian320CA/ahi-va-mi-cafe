@@ -1,0 +1,80 @@
+{
+ "type": "FeatureCollection",
+ "name": "synthetic_plots",
+ "properties": {
+  "is_synthetic": true,
+  "note": "Poligonos sinteticos de parcelas para la demostracion."
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "farm": "El Paraíso",
+    "producer": "Pedro Ramírez",
+    "area_note": "sintetica"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -76.105,
+       1.9
+      ],
+      [
+       -76.102,
+       1.9
+      ],
+      [
+       -76.102,
+       1.9024999999999999
+      ],
+      [
+       -76.105,
+       1.9024999999999999
+      ],
+      [
+       -76.105,
+       1.9
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "farm": "Los Andes",
+    "producer": "Luis Cárdenas",
+    "area_note": "sintetica"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -76.005,
+       1.8
+      ],
+      [
+       -76.0025,
+       1.8
+      ],
+      [
+       -76.0025,
+       1.8025
+      ],
+      [
+       -76.005,
+       1.8025
+      ],
+      [
+       -76.005,
+       1.8
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

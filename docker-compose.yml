@@ -1,0 +1,92 @@
+# Local stack. Every external provider runs in SIMULATED mode unless credentials are set in .env.
+# Usage: docker compose up --build   (panel: http://localhost:3000, API docs: http://localhost:8000/docs)
+
+x-backend-env: &backend-env
+  APP_ENV: ${APP_ENV:-development}
+  SECRET_KEY: ${SECRET_KEY:-local-dev-secret-change-me-0123456789abcdef}
+  DATABASE_URL: postgresql+psycopg://cafe:cafe@db:5432/cafe
+  REDIS_URL: redis://redis:6379/0
+  QUEUE_MODE: rq
+  FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+  API_BASE_URL: ${API_BASE_URL:-http://localhost:8000}
+  WHATSAPP_PROVIDER: ${WHATSAPP_PROVIDER:-simulated}
+  WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+  WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+  WHATSAPP_BUSINESS_ACCOUNT_ID: ${WHATSAPP_BUSINESS_ACCOUNT_ID:-}
+  WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:-dev-verify-token}
+  WHATSAPP_NOTIFICATION_TEMPLATE: ${WHATSAPP_NOTIFICATION_TEMPLATE:-}
+  META_APP_SECRET: ${META_APP_SECRET:-dev-app-secret}
+  META_GRAPH_API_VERSION: ${META_GRAPH_API_VERSION:-v27.0}
+  LLM_PROVIDER: ${LLM_PROVIDER:-simulated}
+  AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
+  AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+  AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-}
+  AZURE_OPENAI_API_VERSION: ${AZURE_OPENAI_API_VERSION:-2024-10-21}
+  SPEECH_PROVIDER: ${SPEECH_PROVIDER:-simulated}
+  AZURE_SPEECH_KEY: ${AZURE_SPEECH_KEY:-}
+  AZURE_SPEECH_REGION: ${AZURE_SPEECH_REGION:-}
+  DOCUMENT_PROVIDER: ${DOCUMENT_PROVIDER:-simulated}
+  AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT:-}
+  AZURE_DOCUMENT_INTELLIGENCE_KEY: ${AZURE_DOCUMENT_INTELLIGENCE_KEY:-}
+  STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+  AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING:-}
+  AZURE_STORAGE_CONTAINER: ${AZURE_STORAGE_CONTAINER:-evidencias}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: cafe
+      POSTGRES_PASSWORD: cafe
+      POSTGRES_DB: cafe
+    volumes: [db-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cafe -d cafe"]
+      interval: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 20
+
+  migrate:
+    build: { context: ., dockerfile: backend/Dockerfile }
+    environment: *backend-env
+    command: ["sh", "-c", "alembic upgrade head && python -m app.cli seed-if-empty"]
+    volumes: [storage:/srv/storage, documents:/srv/data/documents]
+    depends_on:
+      db: { condition: service_healthy }
+
+  api:
+    build: { context: ., dockerfile: backend/Dockerfile }
+    environment: *backend-env
+    ports: ["8000:8000"]
+    volumes: [storage:/srv/storage, documents:/srv/data/documents]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  worker:
+    build: { context: ., dockerfile: backend/Dockerfile }
+    environment: *backend-env
+    command: ["python", "-m", "app.workers.main"]
+    volumes: [storage:/srv/storage, documents:/srv/data/documents]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  web:
+    build:
+      context: ./frontend
+      args: { BACKEND_INTERNAL_URL: "http://api:8000" }
+    ports: ["3000:3000"]
+    depends_on: [api]
+
+volumes:
+  db-data:
+  storage:
+  documents:

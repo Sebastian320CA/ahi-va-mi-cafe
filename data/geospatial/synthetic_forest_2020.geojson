@@ -1,0 +1,83 @@
+{
+ "type": "FeatureCollection",
+ "name": "synthetic_forest_2020",
+ "properties": {
+  "is_synthetic": true,
+  "source": "Sintetica - Ahi va mi cafe demo",
+  "reference_date": "2020-12-31",
+  "resolution_m": 30,
+  "note": "CAPA SINTETICA DE DEMOSTRACION. No representa cobertura real."
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "class": "bosque_2020"
+   },
+   "geometry": {
+    "type": "MultiPolygon",
+    "coordinates": [
+     [
+      [
+       [
+        -76.104,
+        1.901
+       ],
+       [
+        -76.1,
+        1.901
+       ],
+       [
+        -76.1,
+        1.904
+       ],
+       [
+        -76.104,
+        1.904
+       ],
+       [
+        -76.104,
+        1.901
+       ]
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "class": "bosque_2020"
+   },
+   "geometry": {
+    "type": "MultiPolygon",
+    "coordinates": [
+     [
+      [
+       [
+        -76.0035,
+        1.8015
+       ],
+       [
+        -76.0005,
+        1.8015
+       ],
+       [
+        -76.0005,
+        1.8045
+       ],
+       [
+        -76.0035,
+        1.8045
+       ],
+       [
+        -76.0035,
+        1.8015
+       ]
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}
