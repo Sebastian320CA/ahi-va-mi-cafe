@@ -4,7 +4,7 @@ from decimal import Decimal
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -80,6 +80,15 @@ class Settings(BaseSettings):
     cost_rate_speech_per_minute: Decimal | None = None
     cost_rate_document_per_page: Decimal | None = None
     cost_rate_whatsapp_per_message: Decimal | None = None
+
+    @field_validator("database_url")
+    @classmethod
+    def _normalize_database_url(cls, value: str) -> str:
+        # Managed Postgres providers (Render, Heroku, ...) hand out postgres:// or postgresql:// URLs.
+        for prefix in ("postgres://", "postgresql://"):
+            if value.startswith(prefix):
+                return "postgresql+psycopg://" + value[len(prefix):]
+        return value
 
     @property
     def is_dev(self) -> bool:

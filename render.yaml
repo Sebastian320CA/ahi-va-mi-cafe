@@ -1,0 +1,57 @@
+# Render Blueprint for the backend (API + Postgres/PostGIS + Redis). The panel stays on Vercel.
+# Deploy: Render dashboard > New > Blueprint > select this repository.
+# After the first deploy, copy the API URL (https://ahi-va-mi-cafe-api.onrender.com) into the
+# Vercel variable BACKEND_INTERNAL_URL and redeploy the frontend.
+# Plans are free tiers for a demo; the free Postgres expires after a period, so upgrade for real use.
+services:
+  - type: web
+    name: ahi-va-mi-cafe-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /docs
+    # Migrate and seed demo data (only if empty) before serving. Replaces the compose "migrate" service.
+    dockerCommand: sh -c "alembic upgrade head && python -m app.cli seed-if-empty && uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers"
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ahi-va-mi-cafe-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: ahi-va-mi-cafe-redis
+          property: connectionString
+      # No separate worker on the free tier: background jobs run inline.
+      - key: QUEUE_MODE
+        value: sync
+      - key: FRONTEND_URL
+        value: https://ahi-va-mi-cafe.vercel.app
+      - key: API_BASE_URL
+        value: https://ahi-va-mi-cafe-api.onrender.com
+      - key: WHATSAPP_PROVIDER
+        value: simulated
+      - key: LLM_PROVIDER
+        value: simulated
+      - key: SPEECH_PROVIDER
+        value: simulated
+      - key: DOCUMENT_PROVIDER
+        value: simulated
+      - key: STORAGE_PROVIDER
+        value: local
+
+  - type: keyvalue
+    name: ahi-va-mi-cafe-redis
+    plan: free
+    ipAllowList: []
+
+databases:
+  - name: ahi-va-mi-cafe-db
+    plan: free
+    databaseName: cafe
+    user: cafe
