@@ -45,6 +45,14 @@ Con `QUEUE_MODE=sync` el procesamiento ocurre dentro de la solicitud y no se nec
 
 Guion automático de la demostración contra una API en ejecución: `python scripts/demo_scenario.py`.
 
+## Despliegue (Vercel + Render)
+
+El panel (Next.js) va en Vercel y el backend (FastAPI + PostGIS + Redis) en Render, porque Vercel no ejecuta procesos persistentes.
+
+1. En Render: New > Blueprint > este repositorio. Usa `render.yaml`, crea la API, Postgres y Redis, migra y carga los datos demo.
+2. Copia la URL pública de la API (por ejemplo `https://ahi-va-mi-cafe-api.onrender.com`). Si cambia, actualiza `FRONTEND_URL` y `API_BASE_URL` en Render.
+3. En Vercel > Settings > Environment Variables: `BACKEND_INTERNAL_URL=<URL de la API>` (sin `/` final) y haz Redeploy. Sin esta variable el build falla a propósito, porque el login respondería "Error 404".
+
 ## Pruebas y calidad
 
 ```bash
